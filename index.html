@@ -7,16 +7,18 @@
 </head>
 <body>
   <h1>Prueba nuestras camisetas</h1>
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas"></canvas>
-  <div id="controls">
-    <button onclick="cambiarCamiseta(0)">Azul</button>
-    <button onclick="cambiarCamiseta(1)">Morada</button>
-    <button onclick="cambiarCamiseta(2)">Naranja</button>
-    <button onclick="cambiarCamiseta(3)">Verde</button>
+  <div id="video-container">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+  <div id="controls">
+    <button onclick="cambiarCamiseta(0)">Camiseta Azul</button>
+    <button onclick="cambiarCamiseta(1)">Camiseta Morada</button>
+    <button onclick="cambiarCamiseta(2)">Camiseta Naranja</button>
+    <button onclick="cambiarCamiseta(3)">Camiseta Verde</button>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
