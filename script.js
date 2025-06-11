@@ -28,7 +28,7 @@ function cambiarCamiseta(index) {
 }
 
 function iniciarCamara() {
-  const pose = new Pose.Pose({
+  const pose = new Pose({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
   });
 
