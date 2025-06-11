@@ -2,45 +2,44 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Probador Virtual de Camisetas</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f0f0f0;
-    }
     #video-container {
       position: relative;
       display: inline-block;
     }
     video, canvas {
-      border-radius: 10px;
+      position: absolute;
+      top: 0; left: 0;
       width: 640px;
       height: 480px;
-      position: absolute;
-      top: 0;
-      left: 0;
+      border-radius: 10px;
     }
     canvas {
-      pointer-events: none;
+      pointer-events: none; /* para que no interfiera con los botones */
     }
     #controls {
       margin-top: 500px;
+      text-align: center;
     }
     button {
-      padding: 10px 15px;
       margin: 5px;
+      padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
+
   <h1>Prueba nuestras camisetas</h1>
+
   <div id="video-container">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="canvas"></canvas>
   </div>
+
   <div id="controls">
     <button onclick="cambiarCamiseta(0)">Camiseta Azul</button>
     <button onclick="cambiarCamiseta(1)">Camiseta Morada</button>
@@ -49,7 +48,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
   <script src="script.js"></script>
+
 </body>
 </html>
