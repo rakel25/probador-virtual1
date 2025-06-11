@@ -1,115 +1,46 @@
-const videoElement = document.getElementById('video');
-const canvasElement = document.getElementById('canvas');
-const canvasCtx = canvasElement.getContext('2d');
-const nombreCamiseta = document.getElementById('nombreCamiseta');
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
 const prendas = [
-  {
-    nombre: "Peixe Shirt",
-    src: "camisetas/peixe.png",
-    etiqueta: "camisetas/peixe_etiqueta.png"
-  },
-  {
-    nombre: "Moria Skirt",
-    src: "camisetas/moria.png",
-    etiqueta: "camisetas/moria_etiqueta.png"
-  },
-  {
-    nombre: "Nusa Trouser",
-    src: "camisetas/nusa.png",
-    etiqueta: "camisetas/nusa_etiqueta.png"
-  },
-  {
-    nombre: "Jacket",
-    src: "camisetas/jacket.png",
-    etiqueta: "camisetas/jacket_etiqueta.png"
-  }
+  { nombre: 'Peixe Shirt', img: 'camisetas/peixe.png', etiqueta: 'camisetas/peixe_etiqueta.png' },
+  { nombre: 'Moria Skirt', img: 'camisetas/moria.png', etiqueta: 'camisetas/moria_etiqueta.png' },
+  { nombre: 'Nusa Trouser', img: 'camisetas/nusa.png', etiqueta: 'camisetas/nusa_etiqueta.png' },
+  { nombre: 'Jacket', img: 'camisetas/jacket.png', etiqueta: 'camisetas/jacket_etiqueta.png' }
 ];
 
-let indice = 0;
-const imagenes = prendas.map(p => {
-  const img = new Image();
-  img.src = p.src;
-  return img;
-});
+let actual = 0;
+let camisetaImg = new Image();
+camisetaImg.src = prendas[actual].img;
+document.getElementById('nombre-prenda').innerText = prendas[actual].nombre;
 
-const modal = document.getElementById('modalEtiqueta');
-const imgModal = document.getElementById('imgEtiqueta');
-const cerrarModal = document.getElementById('cerrarModal');
-
-function cambiarCamiseta(direccion) {
-  indice = (indice + direccion + prendas.length) % prendas.length;
-  nombreCamiseta.textContent = prendas[indice].nombre;
-}
-
-function iniciarCamara() {
-  if (camera) camera.stop();
-
-  camera = new Camera(videoElement, {
-    onFrame: async () => {
-      await pose.send({ image: videoElement });
-    },
-    width: 640,
-    height: 480,
-    facingMode: useFrontCamera ? 'user' : 'environment'
-  });
-  camera.start();
-
-  // Aplicar espejo solo a cámara frontal
-  if (useFrontCamera) {
-    videoElement.style.transform = 'scaleX(-1)';
-  } else {
-    videoElement.style.transform = 'scaleX(1)';
-  }
-}
-
-function cambiarCamara() {
-  useFrontCamera = !useFrontCamera;
-  iniciarCamara();
-}
-
-function onResults(results) {
-  canvasElement.width = videoElement.videoWidth;
-  canvasElement.height = videoElement.videoHeight;
-
-  canvasCtx.save();
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-  // Dibuja la cámara
-  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-  if (results.poseLandmarks) {
-    const ls = results.poseLandmarks[11]; // left shoulder
-    const rs = results.poseLandmarks[12]; // right shoulder
-    const lh = results.poseLandmarks[23]; // left hip
-
-    const ancho = (rs.x - ls.x) * canvasElement.width * 1.5;
-    const alto = (lh.y - ls.y) * canvasElement.height * 1.6;
-
-    const x = ls.x * canvasElement.width - ancho * 0.15;
-    const y = ls.y * canvasElement.height - alto * 0.25;
-
-    // Si cámara frontal, invertir eje X para que prenda no se dibuje invertida
-    if (useFrontCamera) {
-      canvasCtx.save();
-      canvasCtx.scale(-1, 1);
-      canvasCtx.drawImage(imagenes[indice], -x - ancho, y, ancho, alto);
-      canvasCtx.restore();
-    } else {
-      canvasCtx.drawImage(imagenes[indice], x, y, ancho, alto);
-    }
-  }
-
-  canvasCtx.restore();
-}
-
-let camera;
+let currentStream;
 let useFrontCamera = true;
 
-const pose = new Pose({
-  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
-});
+function cambiarPrenda(dir) {
+  actual = (actual + dir + prendas.length) % prendas.length;
+  camisetaImg.src = prendas[actual].img;
+  document.getElementById('nombre-prenda').innerText = prendas[actual].nombre;
+}
 
+document.getElementById('prev').onclick = () => cambiarPrenda(-1);
+document.getElementById('next').onclick = () => cambiarPrenda(1);
+document.getElementById('flip').onclick = () => {
+  useFrontCamera = !useFrontCamera;
+  iniciarCamara();
+};
+
+canvas.addEventListener('click', () => {
+  document.getElementById('etiqueta-img').src = prendas[actual].etiqueta;
+  document.getElementById('etiqueta-container').style.display = 'flex';
+});
+document.getElementById('cerrar-etiqueta').onclick = () => {
+  document.getElementById('etiqueta-container').style.display = 'none';
+};
+
+const pose = new Pose({
+  locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
+});
 pose.setOptions({
   modelComplexity: 1,
   smoothLandmarks: true,
@@ -117,32 +48,52 @@ pose.setOptions({
   minDetectionConfidence: 0.5,
   minTrackingConfidence: 0.5
 });
-
 pose.onResults(onResults);
 
-document.getElementById('btnAnterior').addEventListener('click', () => {
-  cambiarCamiseta(-1);
-});
+function iniciarCamara() {
+  if (currentStream) {
+    currentStream.getTracks().forEach(track => track.stop());
+  }
+  navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: useFrontCamera ? 'user' : 'environment'
+    }
+  }).then(stream => {
+    currentStream = stream;
+    video.srcObject = stream;
+    video.play();
+    const camera = new Camera(video, {
+      onFrame: async () => await pose.send({ image: video }),
+      width: 640,
+      height: 480
+    });
+    camera.start();
+  });
+}
 
-document.getElementById('btnSiguiente').addEventListener('click', () => {
-  cambiarCamiseta(1);
-});
+function onResults(results) {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-document.getElementById('btnCambiarCamara').addEventListener('click', () => {
-  cambiarCamara();
-});
+  ctx.save();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.scale(useFrontCamera ? -1 : 1, 1);
+  ctx.translate(useFrontCamera ? -canvas.width : 0, 0);
+  ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
-// Al hacer clic en canvas (sobre la prenda) mostramos la etiqueta
-canvasElement.addEventListener('click', (e) => {
-  // Aquí para simplificar mostramos la etiqueta siempre para la prenda actual
-  imgModal.src = prendas[indice].etiqueta;
-  modal.style.display = 'flex';
-});
+  if (results.poseLandmarks) {
+    const ls = results.poseLandmarks[11];
+    const rs = results.poseLandmarks[12];
 
-cerrarModal.addEventListener('click', () => {
-  modal.style.display = 'none';
-});
+    const x = ls.x * canvas.width;
+    const y = ls.y * canvas.height;
+    const width = (rs.x - ls.x) * canvas.width * 1.5;
+    const height = width * 1.4;
 
-// Iniciar cámara y mostrar la prenda inicial
-cambiarCamiseta(0);
+    ctx.drawImage(camisetaImg, x - width * 0.25, y, width, height);
+  }
+
+  ctx.restore();
+}
+
 iniciarCamara();
