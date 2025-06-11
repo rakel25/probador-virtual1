@@ -2,23 +2,18 @@ const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('canvas');
 const canvasCtx = canvasElement.getContext('2d');
 
-const camisetas = [
-  new Image(),
-  new Image(),
-  new Image(),
-  new Image()
-];
+const camisetas = [];
 const nombres = ['azul.png', 'morada.png', 'naranja.png', 'verde.png'];
 
 let camisetaActual = 0;
 let cargadas = 0;
 
-// Carga imágenes y cuando todas estén listas, inicia la cámara
 nombres.forEach((nombre, i) => {
+  camisetas[i] = new Image();
   camisetas[i].src = `camisetas/${nombre}`;
   camisetas[i].onload = () => {
     cargadas++;
-    if (cargadas === camisetas.length) {
+    if (cargadas === nombres.length) {
       iniciarCamara();
     }
   };
@@ -29,7 +24,7 @@ function cambiarCamiseta(index) {
 }
 
 function iniciarCamara() {
-  const pose = new Pose.Pose({
+  const pose = new Pose({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
   });
 
@@ -50,7 +45,6 @@ function iniciarCamara() {
     width: 640,
     height: 480
   });
-
   camera.start();
 }
 
@@ -68,7 +62,6 @@ function onResults(results) {
     const rightHip = results.poseLandmarks[24];
 
     if (leftShoulder && rightShoulder && leftHip && rightHip) {
-      // Calcula posición y tamaño camiseta
       const topX = leftShoulder.x * canvasElement.width;
       const topY = leftShoulder.y * canvasElement.height;
       const width = (rightShoulder.x - leftShoulder.x) * canvasElement.width * 1.6;
