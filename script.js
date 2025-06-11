@@ -42,35 +42,40 @@ function iniciarCamara() {
     onFrame: async () => {
       await pose.send({ image: videoElement });
     },
-    width: 640,
-    height: 480
+    width: 720,
+    height: 1280
   });
   camera.start();
 }
 
 function onResults(results) {
-  canvasElement.width = videoElement.videoWidth;
-  canvasElement.height = videoElement.videoHeight;
+  const width = canvasElement.width = videoElement.videoWidth;
+  const height = canvasElement.height = videoElement.videoHeight;
 
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.clearRect(0, 0, width, height);
+  canvasCtx.drawImage(results.image, 0, 0, width, height);
 
   if (results.poseLandmarks) {
-    const leftShoulder = results.poseLandmarks[11];
-    const rightShoulder = results.poseLandmarks[12];
-    const leftHip = results.poseLandmarks[23];
-    const rightHip = results.poseLandmarks[24];
+    const shoulders = {
+      left: results.poseLandmarks[11],
+      right: results.poseLandmarks[12]
+    };
+    const hips = {
+      left: results.poseLandmarks[23],
+      right: results.poseLandmarks[24]
+    };
 
-    if (leftShoulder && rightShoulder && leftHip && rightHip) {
-      const topX = leftShoulder.x * canvasElement.width;
-      const topY = leftShoulder.y * canvasElement.height;
-      const width = (rightShoulder.x - leftShoulder.x) * canvasElement.width * 1.6;
-      const height = ((leftHip.y + rightHip.y) / 2 - (leftShoulder.y + rightShoulder.y) / 2) * canvasElement.height * 1.3;
+    if (shoulders.left && shoulders.right && hips.left && hips.right) {
+      const topX = shoulders.left.x * width;
+      const topY = shoulders.left.y * height;
 
-      const drawX = topX - width * 0.25;
-      const drawY = topY;
+      const shoulderWidth = (shoulders.right.x - shoulders.left.x) * width * 1.2;
+      const torsoHeight = ((hips.left.y + hips.right.y) / 2 - (shoulders.left.y + shoulders.right.y) / 2) * height * 2;
 
-      canvasCtx.drawImage(camisetas[camisetaActual], drawX, drawY, width, height);
+      const x = shoulders.left.x * width - shoulderWidth * 0.1;
+      const y = shoulders.left.y * height + 20;
+
+      canvasCtx.drawImage(camisetas[camisetaActual], x, y, shoulderWidth, torsoHeight);
     }
   }
 }
