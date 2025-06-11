@@ -9,39 +9,49 @@ const camisetas = [
   new Image()
 ];
 
-camisetas[0].src = 'camisetas/azul.png';
-camisetas[1].src = 'camisetas/morada.png';
-camisetas[2].src = 'camisetas/naranja.png';
-camisetas[3].src = 'camisetas/verde.png';
+const nombres = ['azul.png', 'morada.png', 'naranja.png', 'verde.png'];
+let cargadas = 0;
+
+nombres.forEach((nombre, index) => {
+  camisetas[index].src = `camisetas/${nombre}`;
+  camisetas[index].onload = () => {
+    cargadas++;
+    if (cargadas === camisetas.length) {
+      iniciarCamara();
+    }
+  };
+});
 
 let camisetaActual = 0;
-
 function cambiarCamiseta(index) {
   camisetaActual = index;
 }
 
-const pose = new Pose.Pose({
-  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-});
+function iniciarCamara() {
+  const pose = new Pose.Pose({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+  });
 
-pose.setOptions({
-  modelComplexity: 1,
-  smoothLandmarks: true,
-  enableSegmentation: false,
-  minDetectionConfidence: 0.5,
-  minTrackingConfidence: 0.5
-});
+  pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
 
-pose.onResults(onResults);
+  pose.onResults(onResults);
 
-const camera = new Camera(videoElement, {
-  onFrame: async () => {
-    await pose.send({image: videoElement});
-  },
-  width: 640,
-  height: 480
-});
-camera.start();
+  const camera = new Camera(videoElement, {
+    onFrame: async () => {
+      await pose.send({ image: videoElement });
+    },
+    width: 640,
+    height: 480
+  });
+
+  camera.start();
+}
 
 function onResults(results) {
   canvasElement.width = videoElement.videoWidth;
@@ -55,12 +65,14 @@ function onResults(results) {
     const leftShoulder = results.poseLandmarks[11];
     const rightShoulder = results.poseLandmarks[12];
 
-    const x = leftShoulder.x * canvasElement.width;
-    const y = leftShoulder.y * canvasElement.height;
-    const width = (rightShoulder.x - leftShoulder.x) * canvasElement.width;
-    const height = width * 1.2;
+    if (leftShoulder && rightShoulder) {
+      const x = leftShoulder.x * canvasElement.width;
+      const y = leftShoulder.y * canvasElement.height;
+      const width = (rightShoulder.x - leftShoulder.x) * canvasElement.width;
+      const height = width * 1.2;
 
-    canvasCtx.drawImage(camisetas[camisetaActual], x, y, width, height);
+      canvasCtx.drawImage(camisetas[camisetaActual], x, y, width, height);
+    }
   }
 
   canvasCtx.restore();
