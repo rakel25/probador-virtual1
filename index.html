@@ -2,49 +2,62 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Probador Virtual de Camisetas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Probador Virtual</title>
   <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+
     #video-container {
       position: relative;
-      display: inline-block;
+      width: 100vw;
+      height: 100vh;
     }
+
     video, canvas {
       position: absolute;
-      top: 0; left: 0;
-      width: 640px;
-      height: 480px;
-      border-radius: 10px;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
     }
-    canvas {
-      pointer-events: none; /* para que no interfiera con los botones */
-    }
+
     #controls {
-      margin-top: 500px;
-      text-align: center;
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      z-index: 10;
     }
+
     button {
-      margin: 5px;
-      padding: 10px 20px;
+      padding: 10px 15px;
       font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: white;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <h1>Prueba nuestras camisetas</h1>
-
   <div id="video-container">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="canvas"></canvas>
-  </div>
-
-  <div id="controls">
-    <button onclick="cambiarCamiseta(0)">Camiseta Azul</button>
-    <button onclick="cambiarCamiseta(1)">Camiseta Morada</button>
-    <button onclick="cambiarCamiseta(2)">Camiseta Naranja</button>
-    <button onclick="cambiarCamiseta(3)">Camiseta Verde</button>
+    <div id="controls">
+      <button onclick="cambiarCamiseta(0)">Azul</button>
+      <button onclick="cambiarCamiseta(1)">Morada</button>
+      <button onclick="cambiarCamiseta(2)">Naranja</button>
+      <button onclick="cambiarCamiseta(3)">Verde</button>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
