@@ -8,6 +8,7 @@ const camisetas = [
   new Image(),
   new Image()
 ];
+
 const nombres = ['azul.png', 'morada.png', 'naranja.png', 'verde.png'];
 let camisetaActual = 0;
 let cargadas = 0;
@@ -27,8 +28,8 @@ function cambiarCamiseta(index) {
 }
 
 function iniciarCamara() {
-  const pose = new Pose({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+  const pose = new Pose.Pose({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
   });
 
   pose.setOptions({
@@ -43,11 +44,12 @@ function iniciarCamara() {
 
   const camera = new Camera(videoElement, {
     onFrame: async () => {
-      await pose.send({image: videoElement});
+      await pose.send({ image: videoElement });
     },
     width: 640,
     height: 480
   });
+
   camera.start();
 }
 
