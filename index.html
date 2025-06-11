@@ -7,16 +7,27 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>El Armario de CasaCor</h1>
+  <h1>Prueba nuestras prendas</h1>
 
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas"></canvas>
+  <div id="video-container">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+  </div>
 
   <div id="controles">
-    <button onclick="cambiarCamiseta(-1)">←</button>
-    <span id="nombreCamiseta" class="texto3d">Peixe Shirt</span>
-    <button onclick="cambiarCamiseta(1)">→</button>
-    <button onclick="cambiarCamara()">🔄 Cambiar cámara</button>
+    <button id="btnAnterior" aria-label="Anterior prenda">←</button>
+    <button id="btnCambiarCamara" aria-label="Cambiar cámara">🔄</button>
+    <button id="btnSiguiente" aria-label="Siguiente prenda">→</button>
+  </div>
+
+  <div id="nombreCamiseta" class="texto3d fondo-negro">Peixe Shirt</div>
+
+  <!-- Modal para etiqueta -->
+  <div id="modalEtiqueta" class="modal" style="display:none">
+    <div class="modal-contenido">
+      <span id="cerrarModal" class="cerrar">&times;</span>
+      <img id="imgEtiqueta" src="" alt="Etiqueta de prenda" />
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
