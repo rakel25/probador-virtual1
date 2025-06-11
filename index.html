@@ -1,37 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
   <title>Probador Virtual</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>El armario de CasaCor</h1>
-
-  <div id="video-container">
+  <div id="contenedor">
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
-  </div>
-
-  <div id="controles">
-    <button id="btnAnterior" aria-label="Anterior prenda">←</button>
-    <button id="btnCambiarCamara" aria-label="Cambiar cámara">🔄</button>
-    <button id="btnSiguiente" aria-label="Siguiente prenda">→</button>
-  </div>
-
-  <div id="nombreCamiseta" class="texto3d fondo-negro">Peixe Shirt</div>
-
-  <!-- Modal para etiqueta -->
-  <div id="modalEtiqueta" class="modal" style="display:none">
-    <div class="modal-contenido">
-      <span id="cerrarModal" class="cerrar">&times;</span>
-      <img id="imgEtiqueta" src="" alt="Etiqueta de prenda" />
+    <div id="nombre-prenda">Peixe Shirt</div>
+    <div id="controles">
+      <button id="prev">⟨</button>
+      <button id="next">⟩</button>
+      <button id="flip">🔄</button>
     </div>
   </div>
-
+  <div id="etiqueta-container">
+    <img id="etiqueta-img" src="" alt="Etiqueta de la prenda">
+    <button id="cerrar-etiqueta">Cerrar</button>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
