@@ -2,13 +2,43 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Probador Virtual</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Probador Virtual de Camisetas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+    }
+    #video-container {
+      position: relative;
+      display: inline-block;
+    }
+    video, canvas {
+      border-radius: 10px;
+      width: 640px;
+      height: 480px;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    canvas {
+      pointer-events: none;
+    }
+    #controls {
+      margin-top: 500px;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h1>El Armario de CasaCor </h1>
+  <h1>Prueba nuestras camisetas</h1>
   <div id="video-container">
-    <video id="video" autoplay playsinline></video>
+    <video id="video" autoplay playsinline muted></video>
     <canvas id="canvas"></canvas>
   </div>
   <div id="controls">
@@ -17,6 +47,7 @@
     <button onclick="cambiarCamiseta(2)">Camiseta Naranja</button>
     <button onclick="cambiarCamiseta(3)">Camiseta Verde</button>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="script.js"></script>
