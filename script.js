@@ -8,8 +8,8 @@ const camisetas = [
   new Image(),
   new Image()
 ];
-
 const nombres = ['azul.png', 'morada.png', 'naranja.png', 'verde.png'];
+let camisetaActual = 0;
 let cargadas = 0;
 
 nombres.forEach((nombre, index) => {
@@ -22,7 +22,6 @@ nombres.forEach((nombre, index) => {
   };
 });
 
-let camisetaActual = 0;
 function cambiarCamiseta(index) {
   camisetaActual = index;
 }
@@ -44,12 +43,11 @@ function iniciarCamara() {
 
   const camera = new Camera(videoElement, {
     onFrame: async () => {
-      await pose.send({ image: videoElement });
+      await pose.send({image: videoElement});
     },
     width: 640,
     height: 480
   });
-
   camera.start();
 }
 
@@ -64,14 +62,19 @@ function onResults(results) {
   if (results.poseLandmarks) {
     const leftShoulder = results.poseLandmarks[11];
     const rightShoulder = results.poseLandmarks[12];
+    const leftHip = results.poseLandmarks[23];
+    const rightHip = results.poseLandmarks[24];
 
-    if (leftShoulder && rightShoulder) {
-      const x = leftShoulder.x * canvasElement.width;
-      const y = leftShoulder.y * canvasElement.height;
-      const width = (rightShoulder.x - leftShoulder.x) * canvasElement.width;
-      const height = width * 1.2;
+    if (leftShoulder && rightShoulder && leftHip && rightHip) {
+      const topX = leftShoulder.x * canvasElement.width;
+      const topY = leftShoulder.y * canvasElement.height;
+      const width = (rightShoulder.x - leftShoulder.x) * canvasElement.width * 1.5;
+      const height = ((leftHip.y + rightHip.y) / 2 - (leftShoulder.y + rightShoulder.y) / 2) * canvasElement.height * 1.2;
 
-      canvasCtx.drawImage(camisetas[camisetaActual], x, y, width, height);
+      const drawX = topX - width * 0.25;
+      const drawY = topY;
+
+      canvasCtx.drawImage(camisetas[camisetaActual], drawX, drawY, width, height);
     }
   }
 
