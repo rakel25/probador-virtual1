@@ -1,81 +1,89 @@
 const videoElement = document.getElementById('video');
 const canvasElement = document.getElementById('canvas');
 const canvasCtx = canvasElement.getContext('2d');
+const nombreCamiseta = document.getElementById('nombreCamiseta');
 
-const camisetas = [];
-const nombres = ['azul.png', 'morada.png', 'naranja.png', 'verde.png'];
+const prendas = [
+  { nombre: "Peixe Shirt", src: "camisetas/peixe.png" },
+  { nombre: "Moria Skirt", src: "camisetas/moria.png" },
+  { nombre: "Nusa Trouser", src: "camisetas/nusa.png" },
+  { nombre: "Jacket", src: "camisetas/jacket.png" }
+];
 
-let camisetaActual = 0;
-let cargadas = 0;
-
-nombres.forEach((nombre, i) => {
-  camisetas[i] = new Image();
-  camisetas[i].src = `camisetas/${nombre}`;
-  camisetas[i].onload = () => {
-    cargadas++;
-    if (cargadas === nombres.length) {
-      iniciarCamara();
-    }
-  };
+let indice = 0;
+const imagenes = prendas.map(p => {
+  const img = new Image();
+  img.src = p.src;
+  return img;
 });
 
-function cambiarCamiseta(index) {
-  camisetaActual = index;
+function cambiarCamiseta(direccion) {
+  indice = (indice + direccion + prendas.length) % prendas.length;
+  nombreCamiseta.textContent = prendas[indice].nombre;
 }
 
+// Cámara
+let useFrontCamera = true;
+let camera;
+
 function iniciarCamara() {
-  const pose = new Pose({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
-  });
+  if (camera) camera.stop();
 
-  pose.setOptions({
-    modelComplexity: 1,
-    smoothLandmarks: true,
-    enableSegmentation: false,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
-  });
-
-  pose.onResults(onResults);
-
-  const camera = new Camera(videoElement, {
+  camera = new Camera(videoElement, {
     onFrame: async () => {
       await pose.send({ image: videoElement });
     },
-    width: 720,
-    height: 1280
+    width: 640,
+    height: 480,
+    facingMode: useFrontCamera ? 'user' : 'environment'
   });
   camera.start();
 }
 
-function onResults(results) {
-  const width = canvasElement.width = videoElement.videoWidth;
-  const height = canvasElement.height = videoElement.videoHeight;
+function cambiarCamara() {
+  useFrontCamera = !useFrontCamera;
+  iniciarCamara();
+}
 
-  canvasCtx.clearRect(0, 0, width, height);
-  canvasCtx.drawImage(results.image, 0, 0, width, height);
+function onResults(results) {
+  canvasElement.width = videoElement.videoWidth;
+  canvasElement.height = videoElement.videoHeight;
+
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
   if (results.poseLandmarks) {
-    const shoulders = {
-      left: results.poseLandmarks[11],
-      right: results.poseLandmarks[12]
-    };
-    const hips = {
-      left: results.poseLandmarks[23],
-      right: results.poseLandmarks[24]
-    };
+    const ls = results.poseLandmarks[11]; // left shoulder
+    const rs = results.poseLandmarks[12]; // right shoulder
+    const lh = results.poseLandmarks[23]; // left hip
 
-    if (shoulders.left && shoulders.right && hips.left && hips.right) {
-      const topX = shoulders.left.x * width;
-      const topY = shoulders.left.y * height;
+    // Calculamos ancho y alto para la camiseta (ajustado a torso)
+    const ancho = (rs.x - ls.x) * canvasElement.width * 1.5;
+    const alto = (lh.y - ls.y) * canvasElement.height * 1.6;
 
-      const shoulderWidth = (shoulders.right.x - shoulders.left.x) * width * 1.2;
-      const torsoHeight = ((hips.left.y + hips.right.y) / 2 - (shoulders.left.y + shoulders.right.y) / 2) * height * 2;
+    // Posición (bajo el cuello, en hombro izquierdo)
+    const x = ls.x * canvasElement.width - ancho * 0.15;
+    const y = ls.y * canvasElement.height - alto * 0.25;
 
-      const x = shoulders.left.x * width - shoulderWidth * 0.1;
-      const y = shoulders.left.y * height + 20;
-
-      canvasCtx.drawImage(camisetas[camisetaActual], x, y, shoulderWidth, torsoHeight);
-    }
+    canvasCtx.drawImage(imagenes[indice], x, y, ancho, alto);
   }
+
+  canvasCtx.restore();
 }
+
+const pose = new Pose({
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
+});
+
+pose.setOptions({
+  modelComplexity: 1,
+  smoothLandmarks: true,
+  enableSegmentation: false,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});
+
+pose.onResults(onResults);
+
+iniciarCamara(); // iniciar con cámara frontal
