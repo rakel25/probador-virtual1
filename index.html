@@ -1,68 +1,186 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Probador Virtual</title>
   <style>
-    body, html {
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
       margin: 0;
       padding: 0;
       overflow: hidden;
+      height: 100%;
       background-color: black;
+      font-family: 'Arial', sans-serif;
+      color: white;
     }
 
-    #video-container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    video, canvas {
+    #video, #canvas {
       position: absolute;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
       object-fit: cover;
+      z-index: 0;
     }
 
     #controls {
       position: absolute;
-      bottom: 20px;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 10;
+      display: flex;
+      gap: 20px;
     }
 
-    button {
-      padding: 10px 15px;
-      font-size: 16px;
+    #controls button {
+      background: rgba(255, 255, 255, 0.9);
       border: none;
-      border-radius: 8px;
-      background-color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 30px;
       cursor: pointer;
+      color: #000;
+    }
+
+    #nombre-prenda {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-size: 24px;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
   </style>
 </head>
 <body>
 
-  <div id="video-container">
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="canvas"></canvas>
-    <div id="controls">
-      <button onclick="cambiarCamiseta(0)">Azul</button>
-      <button onclick="cambiarCamiseta(1)">Morada</button>
-      <button onclick="cambiarCamiseta(2)">Naranja</button>
-      <button onclick="cambiarCamiseta(3)">Verde</button>
-    </div>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
+
+  <div id="controls">
+    <button onclick="cambiarCamiseta(-1)">← Anterior</button>
+    <button onclick="alternarCamara()">🔁 Cámara</button>
+    <button onclick="cambiarCamiseta(1)">Siguiente →</button>
   </div>
+
+  <div id="nombre-prenda">Peixe Shirt</div>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const videoElement = document.getElementById('video');
+    const canvasElement = document.getElementById('canvas');
+    const ctx = canvasElement.getContext('2d');
+    const nombrePrenda = document.getElementById('nombre-prenda');
+
+    const prendas = [
+      { nombre: 'Peixe Shirt', img: 'camisetas/azul.png' },
+      { nombre: 'Moria Skirt', img: 'camisetas/morada.png' },
+      { nombre: 'Naranja Top', img: 'camisetas/naranja.png' },
+      { nombre: 'Verde Hoodie', img: 'camisetas/verde.png' }
+    ];
+
+    let prendasImgs = [];
+    prendas.forEach(prenda => {
+      const img = new Image();
+      img.src = prenda.img;
+      prendasImgs.push(img);
+    });
+
+    let indexPrenda = 0;
+    let usandoFrontal = true;
+    let currentStream;
+
+    function cambiarCamiseta(direccion) {
+      indexPrenda = (indexPrenda + direccion + prendas.length) % prendas.length;
+      nombrePrenda.innerText = prendas[indexPrenda].nombre;
+    }
+
+    function alternarCamara() {
+      usandoFrontal = !usandoFrontal;
+      iniciarCamara();
+    }
+
+    async function iniciarCamara() {
+      if (currentStream) {
+        currentStream.getTracks().forEach(t => t.stop());
+      }
+
+      const constraints = {
+        video: {
+          facingMode: usandoFrontal ? 'user' : 'environment',
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        }
+      };
+
+      currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoElement.srcObject = currentStream;
+    }
+
+    const pose = new Pose.Pose({
+      locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
+    });
+
+    pose.setOptions({
+      modelComplexity: 1,
+      smoothLandmarks: true,
+      enableSegmentation: false,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+
+    pose.onResults(draw);
+
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await pose.send({ image: videoElement });
+      },
+      width: 640,
+      height: 480
+    });
+
+    camera.start();
+
+    function draw(results) {
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+
+      ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      ctx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+      if (results.poseLandmarks) {
+        const ls = results.poseLandmarks[11]; // Left shoulder
+        const rs = results.poseLandmarks[12]; // Right shoulder
+        const lh = results.poseLandmarks[23]; // Left hip
+        const rh = results.poseLandmarks[24]; // Right hip
+
+        const x = ls.x * canvasElement.width;
+        const y = ls.y * canvasElement.height;
+        const width = (rs.x - ls.x) * canvasElement.width * 1.8;
+        const height = (Math.max(lh.y, rh.y) - Math.min(ls.y, rs.y)) * canvasElement.height * 1.8;
+
+        const camisetaX = x - width * 0.3;
+        const camisetaY = y - height * 0.2;
+
+        ctx.drawImage(prendasImgs[indexPrenda], camisetaX, camisetaY, width, height);
+      }
+    }
+
+    iniciarCamara();
+  </script>
 
 </body>
 </html>
