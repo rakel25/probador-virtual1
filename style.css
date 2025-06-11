@@ -1,18 +1,23 @@
 body {
   text-align: center;
-  font-family: sans-serif;
+  font-family: Arial, sans-serif;
+  background: #f0f0f0;
 }
-#video, #canvas {
+
+#video-container {
+  position: relative;
+  width: 640px;
+  margin: auto;
+}
+
+video, canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 640px;
   height: 480px;
-  border: 1px solid #ccc;
-  margin-top: 10px;
 }
+
 #controls {
-  margin-top: 10px;
-}
-button {
-  margin: 5px;
-  padding: 10px 15px;
-  font-size: 16px;
+  margin-top: 500px;
 }
