@@ -7,21 +7,19 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="contenedor">
-    <video id="video" autoplay playsinline></video>
+  <div class="contenedor">
+    <video id="video" autoplay playsinline muted></video>
     <canvas id="canvas"></canvas>
-    <div id="nombre-prenda">Peixe Shirt</div>
-    <div id="controles">
-      <button id="prev">⟨</button>
-      <button id="next">⟩</button>
-      <button id="flip">🔄</button>
+    <div id="prenda-info" class="hidden">Material: 100% algodón. Lavar a 30°</div>
+    <div id="nombre-prenda"></div>
+    <div class="controles">
+      <button id="anterior">⬅️</button>
+      <button id="cambiar-camara">🔄</button>
+      <button id="siguiente">➡️</button>
     </div>
   </div>
-  <div id="etiqueta-container">
-    <img id="etiqueta-img" src="" alt="Etiqueta de la prenda">
-    <button id="cerrar-etiqueta">Cerrar</button>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="script.js"></script>
 </body>
