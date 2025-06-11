@@ -8,14 +8,15 @@ const camisetas = [
   new Image(),
   new Image()
 ];
-
 const nombres = ['azul.png', 'morada.png', 'naranja.png', 'verde.png'];
+
 let camisetaActual = 0;
 let cargadas = 0;
 
-nombres.forEach((nombre, index) => {
-  camisetas[index].src = `camisetas/${nombre}`;
-  camisetas[index].onload = () => {
+// Carga imágenes y cuando todas estén listas, inicia la cámara
+nombres.forEach((nombre, i) => {
+  camisetas[i].src = `camisetas/${nombre}`;
+  camisetas[i].onload = () => {
     cargadas++;
     if (cargadas === camisetas.length) {
       iniciarCamara();
@@ -57,7 +58,6 @@ function onResults(results) {
   canvasElement.width = videoElement.videoWidth;
   canvasElement.height = videoElement.videoHeight;
 
-  canvasCtx.save();
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
   canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
@@ -68,10 +68,11 @@ function onResults(results) {
     const rightHip = results.poseLandmarks[24];
 
     if (leftShoulder && rightShoulder && leftHip && rightHip) {
+      // Calcula posición y tamaño camiseta
       const topX = leftShoulder.x * canvasElement.width;
       const topY = leftShoulder.y * canvasElement.height;
-      const width = (rightShoulder.x - leftShoulder.x) * canvasElement.width * 1.5;
-      const height = ((leftHip.y + rightHip.y) / 2 - (leftShoulder.y + rightShoulder.y) / 2) * canvasElement.height * 1.2;
+      const width = (rightShoulder.x - leftShoulder.x) * canvasElement.width * 1.6;
+      const height = ((leftHip.y + rightHip.y) / 2 - (leftShoulder.y + rightShoulder.y) / 2) * canvasElement.height * 1.3;
 
       const drawX = topX - width * 0.25;
       const drawY = topY;
@@ -79,6 +80,4 @@ function onResults(results) {
       canvasCtx.drawImage(camisetas[camisetaActual], drawX, drawY, width, height);
     }
   }
-
-  canvasCtx.restore();
 }
