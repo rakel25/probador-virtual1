@@ -3,24 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title>Probador Virtual</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="contenedor">
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="canvas"></canvas>
-    <div id="prenda-info" class="hidden">Material: 100% algodón. Lavar a 30°</div>
-    <div id="nombre-prenda"></div>
-    <div class="controles">
-      <button id="anterior">⬅️</button>
-      <button id="cambiar-camara">🔄</button>
-      <button id="siguiente">➡️</button>
-    </div>
+  <h1>Prueba nuestras camisetas</h1>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
+  <div id="controls">
+    <button onclick="cambiarCamiseta(0)">Azul</button>
+    <button onclick="cambiarCamiseta(1)">Morada</button>
+    <button onclick="cambiarCamiseta(2)">Naranja</button>
+    <button onclick="cambiarCamiseta(3)">Verde</button>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
   <script src="script.js"></script>
 </body>
 </html>
