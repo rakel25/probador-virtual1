@@ -1,105 +1,68 @@
-const prendas = [
-  { nombre: "PEIXE SHIRT", imagen: "camisetas/peixe.png", info: "camisetas/peixe-info.png" },
-  { nombre: "MORIA SKIRT", imagen: "camisetas/moria.png", info: "camisetas/moria-info.png" },
-  { nombre: "NUSA TROUSER", imagen: "camisetas/nusa.png", info: "camisetas/nusa-info.png" },
-  { nombre: "JACKET", imagen: "camisetas/jacket.png", info: "camisetas/jacket-info.png" }
-];
+const splash = document.getElementById('splash');
+const fittingRoom = document.getElementById('fittingRoom');
+const startBtn = document.getElementById('startBtn');
+const videoElement = document.getElementById('video');
+const canvasElement = document.getElementById('output');
+const canvasCtx = canvasElement.getContext('2d');
+const clothingImg = document.getElementById('clothingImg');
+const selector = document.getElementById('clothingSelector');
 
-let current = 0;
-let useFrontCamera = true;
-let camisetaImg = new Image();
+canvasElement.width = window.innerWidth;
+canvasElement.height = window.innerHeight;
 
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const nombrePrenda = document.getElementById('nombrePrenda');
-const infoOverlay = document.getElementById('infoOverlay');
-const infoImage = document.getElementById('infoImage');
-
-document.getElementById('next').onclick = () => cambiarPrenda(1);
-document.getElementById('prev').onclick = () => cambiarPrenda(-1);
-document.getElementById('switchCamera').onclick = () => {
-  useFrontCamera = !useFrontCamera;
-  iniciarCamara();
+startBtn.onclick = () => {
+  splash.style.display = 'none';
+  fittingRoom.style.display = 'block';
+  initCameraAndPose();
 };
 
-canvas.onclick = () => {
-  infoImage.src = prendas[current].info;
-  infoOverlay.classList.remove('hidden');
-};
+selector.addEventListener('change', () => {
+  const selected = selector.value;
+  clothingImg.src = `clothes/${selected}.png`;
+});
 
-infoImage.onclick = () => {
-  infoOverlay.classList.add('hidden');
-};
-
-function cambiarPrenda(delta) {
-  current = (current + delta + prendas.length) % prendas.length;
-  nombrePrenda.textContent = prendas[current].nombre;
-  camisetaImg.src = prendas[current].imagen;
-}
-
-function iniciarCamara() {
-  if (window.stream) {
-    window.stream.getTracks().forEach(t => t.stop());
-  }
-
-  navigator.mediaDevices.getUserMedia({
-    video: {
-      facingMode: useFrontCamera ? "user" : "environment",
-      width: 640,
-      height: 480
-    }
-  }).then(stream => {
-    video.srcObject = stream;
-    window.stream = stream;
+function initCameraAndPose() {
+  const pose = new Pose({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
   });
+
+  pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+
+  pose.onResults(onResults);
+
+  const camera = new Camera(videoElement, {
+    onFrame: async () => {
+      await pose.send({ image: videoElement });
+    },
+    width: 640,
+    height: 480
+  });
+  camera.start();
 }
-
-const pose = new Pose({
-  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-});
-
-pose.setOptions({
-  modelComplexity: 1,
-  smoothLandmarks: true,
-  enableSegmentation: false,
-  minDetectionConfidence: 0.5,
-  minTrackingConfidence: 0.5
-});
-
-pose.onResults(onResults);
-
-const camera = new Camera(video, {
-  onFrame: async () => {
-    await pose.send({ image: video });
-  },
-  width: 640,
-  height: 480
-});
 
 function onResults(results) {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  ctx.save();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
   if (results.poseLandmarks) {
-    const lShoulder = results.poseLandmarks[11];
-    const rShoulder = results.poseLandmarks[12];
+    const left = results.poseLandmarks[11];
+    const right = results.poseLandmarks[12];
 
-    const x = lShoulder.x * canvas.width;
-    const y = lShoulder.y * canvas.height - 40;
-    const width = (rShoulder.x - lShoulder.x) * canvas.width * 1.5;
-    const height = width * 1.4;
+    const x = (left.x + right.x) / 2 * canvasElement.width;
+    const y = (left.y + right.y) / 2 * canvasElement.height;
 
-    ctx.drawImage(camisetaImg, x, y, width, height);
+    const width = Math.abs(left.x - right.x) * canvasElement.width * 1.5;
+    const height = width * 1.2;
+
+    canvasCtx.drawImage(clothingImg, x - width / 2, y - height / 2, width, height);
   }
 
-  ctx.restore();
+  canvasCtx.restore();
 }
-
-cambiarPrenda(0);
-iniciarCamara();
-camera.start();
