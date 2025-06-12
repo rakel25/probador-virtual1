@@ -1,96 +1,47 @@
 body {
   margin: 0;
   font-family: sans-serif;
-  background: #000;
+  background: #111;
   color: white;
   overflow: hidden;
-}
-
-header {
-  position: absolute;
-  top: 0;
-  width: 100%;
   text-align: center;
-  z-index: 2;
-  background: rgba(0, 0, 0, 0.6);
-  padding-top: 10px;
 }
 
-.logo {
-  max-width: 120px;
-  margin: 5px auto;
+#splash {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #111;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-.intro {
-  font-size: 1rem;
-  margin: 0;
-  color: #ccc;
+#logo {
+  width: 200px;
+  margin-bottom: 20px;
 }
 
-main {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
+#startBtn {
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+#clothingSelector {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  font-size: 16px;
+  padding: 5px;
 }
 
 video, canvas {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.controls {
-  position: absolute;
-  bottom: 80px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 20px;
-  z-index: 2;
-}
-
-.controls button {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  font-size: 2rem;
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.nombre-prenda {
-  position: absolute;
-  bottom: 20px;
-  width: 100%;
-  text-align: center;
-  font-size: 1.2rem;
-  color: silver;
-  font-weight: bold;
-  text-shadow: 1px 1px 3px #000;
-  z-index: 2;
-}
-
-.info-overlay {
-  position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-}
-
-.info-overlay img {
-  max-width: 90%;
-  max-height: 90%;
-  cursor: pointer;
-}
-
-.hidden {
-  display: none;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
 }
