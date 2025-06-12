@@ -1,79 +1,105 @@
-const videoElement = document.getElementById('video');
-const canvasElement = document.getElementById('canvas');
-const canvasCtx = canvasElement.getContext('2d');
-
-const camisetas = [
-  new Image(),
-  new Image(),
-  new Image(),
-  new Image()
+const prendas = [
+  { nombre: "PEIXE SHIRT", imagen: "camisetas/peixe.png", info: "camisetas/peixe-info.png" },
+  { nombre: "MORIA SKIRT", imagen: "camisetas/moria.png", info: "camisetas/moria-info.png" },
+  { nombre: "NUSA TROUSER", imagen: "camisetas/nusa.png", info: "camisetas/nusa-info.png" },
+  { nombre: "JACKET", imagen: "camisetas/jacket.png", info: "camisetas/jacket-info.png" }
 ];
 
-const nombres = ['azul.png', 'morada.png', 'naranja.png', 'verde.png'];
-let cargadas = 0;
+let current = 0;
+let useFrontCamera = true;
+let camisetaImg = new Image();
 
-nombres.forEach((nombre, index) => {
-  camisetas[index].src = `camisetas/${nombre}`;
-  camisetas[index].onload = () => {
-    cargadas++;
-    if (cargadas === camisetas.length) {
-      iniciarCamara();
-    }
-  };
-});
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const nombrePrenda = document.getElementById('nombrePrenda');
+const infoOverlay = document.getElementById('infoOverlay');
+const infoImage = document.getElementById('infoImage');
 
-let camisetaActual = 0;
-function cambiarCamiseta(index) {
-  camisetaActual = index;
+document.getElementById('next').onclick = () => cambiarPrenda(1);
+document.getElementById('prev').onclick = () => cambiarPrenda(-1);
+document.getElementById('switchCamera').onclick = () => {
+  useFrontCamera = !useFrontCamera;
+  iniciarCamara();
+};
+
+canvas.onclick = () => {
+  infoImage.src = prendas[current].info;
+  infoOverlay.classList.remove('hidden');
+};
+
+infoImage.onclick = () => {
+  infoOverlay.classList.add('hidden');
+};
+
+function cambiarPrenda(delta) {
+  current = (current + delta + prendas.length) % prendas.length;
+  nombrePrenda.textContent = prendas[current].nombre;
+  camisetaImg.src = prendas[current].imagen;
 }
 
 function iniciarCamara() {
-  const pose = new Pose({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-  });
-
-  pose.setOptions({
-    modelComplexity: 1,
-    smoothLandmarks: true,
-    enableSegmentation: false,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
-  });
-
-  pose.onResults(onResults);
-
-  const camera = new Camera(videoElement, {
-    onFrame: async () => {
-      await pose.send({ image: videoElement });
-    },
-    width: 640,
-    height: 480
-  });
-
-  camera.start();
-}
-
-function onResults(results) {
-  canvasElement.width = videoElement.videoWidth;
-  canvasElement.height = videoElement.videoHeight;
-
-  canvasCtx.save();
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-  if (results.poseLandmarks) {
-    const leftShoulder = results.poseLandmarks[11];
-    const rightShoulder = results.poseLandmarks[12];
-
-    if (leftShoulder && rightShoulder) {
-      const x = leftShoulder.x * canvasElement.width;
-      const y = leftShoulder.y * canvasElement.height;
-      const width = (rightShoulder.x - leftShoulder.x) * canvasElement.width;
-      const height = width * 1.2;
-
-      canvasCtx.drawImage(camisetas[camisetaActual], x, y, width, height);
-    }
+  if (window.stream) {
+    window.stream.getTracks().forEach(t => t.stop());
   }
 
-  canvasCtx.restore();
+  navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: useFrontCamera ? "user" : "environment",
+      width: 640,
+      height: 480
+    }
+  }).then(stream => {
+    video.srcObject = stream;
+    window.stream = stream;
+  });
 }
+
+const pose = new Pose({
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+});
+
+pose.setOptions({
+  modelComplexity: 1,
+  smoothLandmarks: true,
+  enableSegmentation: false,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});
+
+pose.onResults(onResults);
+
+const camera = new Camera(video, {
+  onFrame: async () => {
+    await pose.send({ image: video });
+  },
+  width: 640,
+  height: 480
+});
+
+function onResults(results) {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  ctx.save();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+  if (results.poseLandmarks) {
+    const lShoulder = results.poseLandmarks[11];
+    const rShoulder = results.poseLandmarks[12];
+
+    const x = lShoulder.x * canvas.width;
+    const y = lShoulder.y * canvas.height - 40;
+    const width = (rShoulder.x - lShoulder.x) * canvas.width * 1.5;
+    const height = width * 1.4;
+
+    ctx.drawImage(camisetaImg, x, y, width, height);
+  }
+
+  ctx.restore();
+}
+
+cambiarPrenda(0);
+iniciarCamara();
+camera.start();
