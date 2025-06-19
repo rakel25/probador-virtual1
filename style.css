@@ -1,67 +1,19 @@
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background: #111;
-  color: white;
-  overflow: hidden;
-  text-align: center;
-}
-
-#splash {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #111;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-}
-
-#logo {
-  width: 250px;
-  margin-bottom: 20px;
-}
-
-#startBtn {
-  font-size: 18px;
-  padding: 10px 20px;
-  cursor: pointer;
-}
-
-#clothingSelector {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 20;
-  font-size: 16px;
-  padding: 5px;
-}
-
-#fittingRoom {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
-
-video, canvas {
+#prev-btn, #next-btn {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-}
-
-#clothingCanvas {
-  pointer-events: none;
+  top: 50%; /* Alineación vertical */
+  transform: translateY(-50%);
+  background-color: black;
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
   z-index: 10;
 }
 
-#videoCanvas {
-  z-index: 5;
+#prev-btn {
+  left: 10px;
+}
+
+#next-btn {
+  right: 10px;
 }
