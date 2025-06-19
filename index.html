@@ -1,46 +1,27 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Virtual TRY-ON</title>
-<style>
-  body, html {
-    margin: 0; padding: 0; height: 100%;
-    display: flex; justify-content: center; align-items: center;
-    background: #fff;
-  }
-  #logo-screen img {
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    cursor: pointer;
-  }
-  #fitting-room {
-    display: none;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Probador Virtual</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-  <div id="logo-screen">
-    <img id="logo-img" src="logo.png" alt="Logo Virtual TRY-ON" />
+  <!-- Pantalla Inicio -->
+  <div id="pantalla-inicio" class="pantalla activa">
+    <img src="logo.png" alt="Logo" id="logo" />
   </div>
 
-  <div id="fitting-room">
-    <!-- Aquí va el probador virtual que ya tienes -->
+  <!-- Pantalla Probador -->
+  <div id="pantalla-probador" class="pantalla">
+    <video id="video" autoplay playsinline muted></video>
+    <img id="prenda" src="clothes/jacket1.png" alt="Prenda" />
+    <div id="botones">
+      <button id="btn-anterior">Anterior</button>
+      <button id="btn-siguiente">Siguiente</button>
+    </div>
   </div>
 
-<script>
-  const logoImg = document.getElementById("logo-img");
-  const logoScreen = document.getElementById("logo-screen");
-  const fittingRoom = document.getElementById("fitting-room");
-
-  logoImg.addEventListener("click", () => {
-    logoScreen.style.display = "none";
-    fittingRoom.style.display = "block";
-  });
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
