@@ -1,53 +1,68 @@
-const splash = document.getElementById("splash-screen");
-const logoImg = document.getElementById("logo-img");
-const fittingRoom = document.getElementById("fitting-room");
+const splash = document.getElementById('splash');
+const fittingRoom = document.getElementById('fittingRoom');
+const startBtn = document.getElementById('startBtn');
+const videoElement = document.getElementById('video');
+const canvasElement = document.getElementById('output');
+const canvasCtx = canvasElement.getContext('2d');
+const clothingImg = document.getElementById('clothingImg');
+const selector = document.getElementById('clothingSelector');
 
-logoImg.onclick = () => {
-  splash.style.display = "none";
-  fittingRoom.style.display = "block";
-  startPose();
+canvasElement.width = window.innerWidth;
+canvasElement.height = window.innerHeight;
+
+startBtn.onclick = () => {
+  splash.style.display = 'none';
+  fittingRoom.style.display = 'block';
+  initCameraAndPose();
 };
 
+selector.addEventListener('change', () => {
+  const selected = selector.value;
+  clothingImg.src = `clothes/${selected}.png`;
+});
+
+function initCameraAndPose() {
+  const pose = new Pose({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+  });
+
+  pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+
+  pose.onResults(onResults);
+
+  const camera = new Camera(videoElement, {
+    onFrame: async () => {
+      await pose.send({ image: videoElement });
+    },
+    width: 640,
+    height: 480
+  });
+  camera.start();
+}
+
 function onResults(results) {
-  videoCtx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
-  videoCtx.drawImage(results.image, 0, 0, videoCanvas.width, videoCanvas.height);
+  canvasCtx.save();
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
-  overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  if (results.poseLandmarks) {
+    const left = results.poseLandmarks[11];
+    const right = results.poseLandmarks[12];
 
-  if (!results.poseLandmarks) return;
+    const x = (left.x + right.x) / 2 * canvasElement.width;
+    const y = (left.y + right.y) / 2 * canvasElement.height;
 
-  const ls = results.poseLandmarks[11];
-  const rs = results.poseLandmarks[12];
-  const lh = results.poseLandmarks[23];
-  const rh = results.poseLandmarks[24];
+    const width = Math.abs(left.x - right.x) * canvasElement.width * 1.5;
+    const height = width * 1.2;
 
-  const centerX = (ls.x + rs.x) / 2 * overlayCanvas.width;
-  const shoulderY = (ls.y + rs.y) / 2 * overlayCanvas.height;
-  const hipY = (lh.y + rh.y) / 2 * overlayCanvas.height;
-
-  const shoulderWidth = Math.abs(ls.x - rs.x) * overlayCanvas.width;
-  const torsoHeight = hipY - shoulderY;
-
-  const imgWidth = shoulderWidth * 1.8;
-  const imgHeight = torsoHeight * 1.8;
-
-  if (usingFrontCamera) {
-    // Imagen justo debajo del cuello, cubriendo torso sin tapar la cara
-    overlayCtx.drawImage(
-      clothingImg,
-      centerX - imgWidth / 2,
-      shoulderY + 10,
-      imgWidth,
-      imgHeight
-    );
-  } else {
-    // Mantener dibujo original (por si usas cámara trasera)
-    overlayCtx.drawImage(
-      clothingImg,
-      centerX - imgWidth / 2,
-      shoulderY - imgHeight / 3,
-      imgWidth,
-      imgHeight
-    );
+    canvasCtx.drawImage(clothingImg, x - width / 2, y - height / 2, width, height);
   }
+
+  canvasCtx.restore();
 }
