@@ -1,239 +1,46 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Virtual Try-On</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body, html {
-      width: 100%;
-      height: 100%;
-      font-family: Helvetica, sans-serif;
-      overflow: hidden;
-      background-color: #a8d5ba; /* verde pistacho */
-    }
-
-    #splash-screen {
-      width: 100%;
-      height: 100%;
-      background-color: #a8d5ba;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
-    #splash-screen img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    #fitting-room {
-      width: 100%;
-      height: 100%;
-      display: none;
-      position: relative;
-    }
-
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-    }
-
-    #video {
-      display: none;
-    }
-
-    .controls {
-      position: absolute;
-      bottom: 20px;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 20px;
-      z-index: 5;
-    }
-
-    .btn {
-      background-color: black;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      font-size: 18px;
-      cursor: pointer;
-      border-radius: 10px;
-      opacity: 0.8;
-    }
-
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Virtual TRY-ON</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    display: flex; justify-content: center; align-items: center;
+    background: #fff;
+  }
+  #logo-screen img {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    cursor: pointer;
+  }
+  #fitting-room {
+    display: none;
+  }
+</style>
 </head>
 <body>
-  <!-- Pantalla inicial -->
-<div id="splash-screen" style="width:100vw; height:100vh;">
-  <img id="logo-img" src="logo.png" alt="Logo" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">
-</div>
 
-<!-- Probador virtual (oculto por defecto) -->
-<div id="fitting-room" style="display:none;">
-  <!-- Aquí va todo lo del probador, que ya tienes -->
-</div>
-
-
-
-  <!-- Probador virtual -->
-  <div id="fitting-room">
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="video-canvas"></canvas>
-    <canvas id="overlay-canvas"></canvas>
-
-    <div class="controls">
-      <button id="prev-btn" class="btn">←</button>
-      <button id="next-btn" class="btn">→</button>
-    </div>
+  <div id="logo-screen">
+    <img id="logo-img" src="logo.png" alt="Logo Virtual TRY-ON" />
   </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-  <script>
-    const splash = document.getElementById("splash-screen");
-    const enterBtn = document.getElementById("enter-btn");
-    const fittingRoom = document.getElementById("fitting-room");
+  <div id="fitting-room">
+    <!-- Aquí va el probador virtual que ya tienes -->
+  </div>
 
-    const video = document.getElementById("video");
-    const videoCanvas = document.getElementById("video-canvas");
-    const overlayCanvas = document.getElementById("overlay-canvas");
-    const videoCtx = videoCanvas.getContext("2d");
-    const overlayCtx = overlayCanvas.getContext("2d");
+<script>
+  const logoImg = document.getElementById("logo-img");
+  const logoScreen = document.getElementById("logo-screen");
+  const fittingRoom = document.getElementById("fitting-room");
 
-    const prendas = [
-      { file: "peixe1.png" },
-      { file: "nusa1.png" },
-      { file: "jacket1.png" },
-      { file: "moria1.png" }
-    ];
+  logoImg.addEventListener("click", () => {
+    logoScreen.style.display = "none";
+    fittingRoom.style.display = "block";
+  });
+</script>
 
-    let currentIndex = 0;
-    let currentStream = null;
-    let cameraInstance = null;
-
-    const clothingImg = new Image();
-    clothingImg.src = `clothes/${prendas[currentIndex].file}`;
-
-    document.getElementById("prev-btn").onclick = () => {
-      currentIndex = (currentIndex - 1 + prendas.length) % prendas.length;
-      updatePrenda();
-    };
-
-    document.getElementById("next-btn").onclick = () => {
-      currentIndex = (currentIndex + 1) % prendas.length;
-      updatePrenda();
-    };
-
-    enterBtn.onclick = () => {
-      splash.style.display = "none";
-      fittingRoom.style.display = "block";
-      startPose();
-    };
-
-    function updatePrenda() {
-      clothingImg.src = `clothes/${prendas[currentIndex].file}`;
-    }
-
-    function resizeCanvases() {
-      videoCanvas.width = window.innerWidth;
-      videoCanvas.height = window.innerHeight;
-      overlayCanvas.width = window.innerWidth;
-      overlayCanvas.height = window.innerHeight;
-    }
-    resizeCanvases();
-    window.addEventListener('resize', resizeCanvases);
-
-    function startPose() {
-      const pose = new Pose({
-        locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-      });
-
-      pose.setOptions({
-        modelComplexity: 1,
-        smoothLandmarks: true,
-        enableSegmentation: false,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
-      });
-
-      pose.onResults(onResults);
-
-      const constraints = {
-        audio: false,
-        video: {
-          width: 640,
-          height: 480,
-          facingMode: "user" // Solo frontal
-        }
-      };
-
-      const camera = new Camera(video, {
-        onFrame: async () => {
-          await pose.send({ image: video });
-        },
-        width: 640,
-        height: 480
-      });
-
-      if (currentStream) {
-        currentStream.getTracks().forEach(track => track.stop());
-      }
-      currentStream = camera;
-      cameraInstance = camera;
-      camera.start();
-    }
-
-    function onResults(results) {
-      videoCtx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
-      videoCtx.save();
-      videoCtx.scale(-1, 1);
-      videoCtx.translate(-videoCanvas.width, 0);
-      videoCtx.drawImage(results.image, 0, 0, videoCanvas.width, videoCanvas.height);
-      videoCtx.restore();
-
-      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-
-      if (!results.poseLandmarks) return;
-
-      const ls = results.poseLandmarks[11]; // left shoulder
-      const rs = results.poseLandmarks[12]; // right shoulder
-      const lh = results.poseLandmarks[23]; // left hip
-      const rh = results.poseLandmarks[24]; // right hip
-
-      const centerX = (ls.x + rs.x) / 2 * overlayCanvas.width;
-      const centerY = (ls.y + rs.y) / 2 * overlayCanvas.height;
-      const shoulderWidth = Math.abs(ls.x - rs.x) * overlayCanvas.width;
-      const torsoHeight = Math.abs(((lh.y + rh.y) / 2 - (ls.y + rs.y) / 2)) * overlayCanvas.height;
-
-      const imgWidth = shoulderWidth * 1.8;
-      const imgHeight = torsoHeight * 1.8;
-
-      // En frontal, baja más la imagen para no tapar la cara
-      overlayCtx.drawImage(
-        clothingImg,
-        centerX - imgWidth / 2,
-        centerY + 60,  // desplaza hacia abajo para que no tape la cara
-        imgWidth,
-        imgHeight
-      );
-    }
-
-    updatePrenda();
-  </script>
 </body>
 </html>
