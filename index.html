@@ -1,186 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Probador Virtual</title>
-
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background: black;
-    }
-
-    #start-screen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      background: black;
-    }
-
-    #logo {
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      cursor: pointer;
-    }
-
-    #virtual-tryon {
-      display: none;
-    }
-
-    video, canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      z-index: 0;
-    }
-
-    #overlay {
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    #controls {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2;
-      display: flex;
-      gap: 10px;
-    }
-
-    .cloth-btn {
-      padding: 10px 20px;
-      font-size: 16px;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
-
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.8.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection/dist/movenet.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Pantalla del logo -->
-  <div id="start-screen">
-    <img src="logo.png" id="logo" alt="Logo" />
-  </div>
+<!-- Pantalla de inicio con logo -->
+<div id="splash-screen">
+  <img id="logo-img" src="logo.png" alt="Logo">
+</div>
 
-  <!-- Probador Virtual -->
-  <div id="virtual-tryon">
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="overlay"></canvas>
+<!-- Probador virtual -->
+<div id="fitting-room">
+  <canvas id="video-canvas"></canvas>
+  <canvas id="overlay-canvas"></canvas>
 
-    <div id="controls">
-      <button data-cloth="jacket1" class="cloth-btn">Jacket</button>
-      <button data-cloth="moria1" class="cloth-btn">Moria</button>
-      <button data-cloth="nusa1" class="cloth-btn">Nusa</button>
-      <button data-cloth="peixe1" class="cloth-btn">Peixe</button>
-    </div>
-  </div>
+  <button id="prev-btn">←</button>
+  <button id="next-btn">→</button>
 
-  <script>
-    const startScreen = document.getElementById('start-screen');
-    const logo = document.getElementById('logo');
-    const virtualTryon = document.getElementById('virtual-tryon');
-    const video = document.getElementById('video');
-    const overlay = document.getElementById('overlay');
-    const ctx = overlay.getContext('2d');
+  <button id="toggle-camera-btn">
+    <img src="camera-icon.png" alt="Cambiar cámara">
+  </button>
+</div>
 
-    let detector;
-    let selectedCloth = 'jacket1';
-    const clothesCache = {};
-    const CLOTHES = ['jacket1', 'moria1', 'nusa1', 'peixe1'];
-
-    async function loadClothes() {
-      for (const cloth of CLOTHES) {
-        const img = new Image();
-        img.src = `clothes/${cloth}.png`;
-        await new Promise(res => img.onload = res);
-        clothesCache[cloth] = img;
-      }
-    }
-
-    async function setupCamera() {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // o "user" para frontal
-        audio: false
-      });
-      video.srcObject = stream;
-      await video.play();
-    }
-
-    async function initDetector() {
-      detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet);
-    }
-
-    async function detectPose() {
-      const poses = await detector.estimatePoses(video);
-      ctx.clearRect(0, 0, overlay.width, overlay.height);
-
-      if (poses.length > 0) {
-        const pose = poses[0];
-        const leftShoulder = pose.keypoints.find(p => p.name === 'left_shoulder');
-        const rightShoulder = pose.keypoints.find(p => p.name === 'right_shoulder');
-        const leftHip = pose.keypoints.find(p => p.name === 'left_hip');
-        const rightHip = pose.keypoints.find(p => p.name === 'right_hip');
-
-        if ([leftShoulder, rightShoulder, leftHip, rightHip].every(p => p.score > 0.4)) {
-          const img = clothesCache[selectedCloth];
-          const torsoWidth = Math.hypot(rightShoulder.x - leftShoulder.x, rightShoulder.y - leftShoulder.y);
-          const torsoHeight = Math.hypot(rightHip.y - rightShoulder.y, rightHip.x - rightShoulder.x);
-          const centerX = (leftShoulder.x + rightShoulder.x) / 2;
-          const centerY = (leftShoulder.y + rightShoulder.y) / 2;
-          const width = torsoWidth * 2;
-          const height = torsoHeight * 2.5;
-
-          ctx.drawImage(img, centerX - width / 2, centerY - height / 2, width, height);
-        }
-      }
-
-      requestAnimationFrame(detectPose);
-    }
-
-    logo.addEventListener('click', async () => {
-      startScreen.style.display = 'none';
-      virtualTryon.style.display = 'block';
-
-      overlay.width = window.innerWidth;
-      overlay.height = window.innerHeight;
-
-      await loadClothes();
-      await setupCamera();
-      await initDetector();
-      detectPose();
-    });
-
-    document.querySelectorAll('.cloth-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selectedCloth = btn.getAttribute('data-cloth');
-      });
-    });
-
-    window.addEventListener('resize', () => {
-      overlay.width = window.innerWidth;
-      overlay.height = window.innerHeight;
-    });
-  </script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
