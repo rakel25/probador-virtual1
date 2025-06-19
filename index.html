@@ -1,25 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Probador Virtual</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 </head>
 <body>
-  <!-- Pantalla Inicio -->
-  <div id="pantalla-inicio" class="pantalla activa">
-    <img src="logo.png" alt="Logo" id="logo" />
+
+  <!-- Pantalla de bienvenida -->
+  <div id="splash">
+    <img src="logo.png" alt="Logo" id="logo">
+    <button id="startBtn">Entrar al probador</button>
   </div>
 
-  <!-- Pantalla Probador -->
-  <div id="pantalla-probador" class="pantalla">
-    <video id="video" autoplay playsinline muted></video>
-    <img id="prenda" src="clothes/jacket1.png" alt="Prenda" />
-    <div id="botones">
-      <button id="btn-anterior">Anterior</button>
-      <button id="btn-siguiente">Siguiente</button>
-    </div>
+  <!-- Interfaz del probador -->
+  <div id="fittingRoom" style="display:none;">
+    <select id="clothingSelector">
+      <option value="jacket1">Jacket 1</option>
+      <option value="moria1">Moria 1</option>
+      <option value="nusa1">Nusa 1</option>
+      <option value="peixe1">Peixe 1</option>
+    </select>
+
+    <video id="video" playsinline></video>
+    <canvas id="output"></canvas>
+
+    <!-- Imágenes de ropa -->
+    <img id="clothingImg" src="clothes/jacket1.png" style="display:none;">
   </div>
 
   <script src="script.js"></script>
